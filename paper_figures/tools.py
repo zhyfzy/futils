@@ -31,15 +31,7 @@ def open_dir(path):
 
 def open_file(file):
     """打开文件"""
-    if platform.system() == 'Windows':
-        os.system(file)
-    elif platform.system() == 'Darwin':
-        os.system('open ' + file)
-    elif platform.system() == 'Linux':
-        os.system('xdg-open ' + file)
-    else:
-        print("system not support.")
-    return
+    os.system('code ' + file)
 
 
 def get_line_x(**kwargs):
@@ -97,7 +89,8 @@ def get_group_x(**kwargs):
     bar_count_in_group = kwargs['bar_count_in_group']
     group_count = kwargs['group_count']
 
-    group_width = bar_width * bar_count_in_group + bar_interval * (bar_count_in_group - 1)
+    group_width = bar_width * bar_count_in_group + \
+        bar_interval * (bar_count_in_group - 1)
 
     group_tick_x = [left_margin + 0.5 * group_width]
     for i in range(1, group_count):
@@ -113,7 +106,8 @@ def get_group_bar_x_lim(**kwargs):
     bar_width = kwargs['bar_width']
     bar_count_in_group = kwargs['bar_count_in_group']
     group_count = kwargs['group_count']
-    group_width = bar_width * bar_count_in_group + interval * (bar_count_in_group - 1)
+    group_width = bar_width * bar_count_in_group + \
+        interval * (bar_count_in_group - 1)
 
     return [0, left_margin + group_width * group_count + margin * (group_count - 1) + right_margin]
 
@@ -375,7 +369,8 @@ def get_axis(**kwargs):
     if 'width_ratios' in kwargs:
         width_ratios = kwargs['width_ratios']
 
-    gs = matplotlib.gridspec.GridSpec(row, col, height_ratios=height_ratios, width_ratios=width_ratios)
+    gs = matplotlib.gridspec.GridSpec(
+        row, col, height_ratios=height_ratios, width_ratios=width_ratios)
 
     ax = []
     for i in range(0, row * col):
@@ -424,7 +419,7 @@ def save_fig(**kwargs):
     # matplotlib = kwargs['matplotlib']
     h_pad = kwargs['h_pad']
     w_pad = kwargs['w_pad']
-    is_open_dir = kwargs['open_dir']
+    # is_open_dir = kwargs['open_dir']
     is_open_file = kwargs['open_file']
     line_width = kwargs['line_width']
 
@@ -432,33 +427,35 @@ def save_fig(**kwargs):
     matplotlib.rcParams['savefig.dpi'] = 1800
     matplotlib.rcParams['hatch.linewidth'] = line_width
     matplotlib.rcParams['lines.linewidth'] = line_width
-    matplotlib.rcParams['pdf.fonttype'] = 42  # 在sIEEE网站提交需要嵌入字体
+    matplotlib.rcParams['pdf.fonttype'] = 42  # 在IEEE网站提交需要嵌入字体
     matplotlib.rcParams['ps.fonttype'] = 42  # 在IEEE网站提交需要嵌入字体
 
-
     matplotlib.pyplot.tight_layout(h_pad=h_pad, w_pad=w_pad)
-    output_dir = pathlib.Path(__file__).parent
+    # output_dir = pathlib.Path(__file__).parent
+    # print(__file__)
     # output_dir = os.path.join(pathlib.Path(__file__).parent, 'pics')
     # output_dir = '.' + os.sep + 'pics' + os.sep
-    output_file = os.path.join(output_dir, file_name)
+    output_file = file_name
+    # output_file = os.path.join(output_dir, file_name)
     delete_file(output_file)
     print(output_file)
 
-    matplotlib.pyplot.savefig(output_file, transparent=True, bbox_inches='tight', pad_inches=0, dpi=1800)
-    if is_open_dir:
-        open_dir(output_dir)
+    matplotlib.pyplot.savefig(
+        output_file, transparent=True, bbox_inches='tight', pad_inches=0, dpi=1800)
+    # if is_open_dir:
+    #     open_dir(output_dir)
     if is_open_file:
         open_file(output_file)
     if 'copy_to' in kwargs:
         for target in kwargs['copy_to']:
-            # os.system('cp ' + output_file + ' ' + str(target))
-            copyfile(output_file, target + file_name)
+            copyfile(output_file, os.path.join(target,file_name))
 
 
 def generate_random_data_list(standard, group_number=20, variation=0.2):
     data_list = []
     for i in range(0, group_number):
-        data_list.append(standard + (random.randint(0, 65536) % 2 - 0.5) * 2 * standard * variation * random.random())
+        data_list.append(standard + (random.randint(0, 65536) %
+                         2 - 0.5) * 2 * standard * variation * random.random())
     return data_list
 
 

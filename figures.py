@@ -1,16 +1,19 @@
 """一些简单的绘图函数，调用即绘图"""
+import matplotlib
 import matplotlib.pyplot as plt
+import matplotlib.font_manager as font_manager
 import numpy as np
 import statsmodels.api as sm
 import futils.paper_figures.measure as measure
 import futils.paper_figures.tools as tools
 
-
 def __style_a(data, data_parse_func, **kwargs):
     # 载入参数
     frame_linewidth = kwargs.get('frame_linewidth', measure.line_width_normal)
     font_size = 11
-    font_family = "Arial"
+    font_family = kwargs.get('font_family', 'sans-serif')
+    if font_family == 'sans-serif':
+        matplotlib.rcParams['font.sans-serif'] = ['SimSun']
 
     figure_width = kwargs.get('figure_width', 4.2)
     figure_height = kwargs.get('figure_height', 2.6)
@@ -31,7 +34,48 @@ def __style_a(data, data_parse_func, **kwargs):
         font_family=font_family
     )
 
-    plot = data_parse_func(data, ax, **kwargs)
+    # parse linewidth
+    curve_linewidth = kwargs.get('curve_linewidth', 1.0)
+    if isinstance(curve_linewidth, list):
+        assert len(curve_linewidth) == len(data)
+    else:
+        curve_linewidth = [curve_linewidth] * len(data)
+    kwargs.pop('curve_linewidth')
+
+    # parse color
+    color = kwargs.get('color', [measure.purple, measure.green_chrome,
+                                    measure.blue_chrome, measure.orange,
+                                    measure.yellow, measure.red_chrome,
+                                    measure.yellow_chrome, measure.grey_heavy])
+    assert isinstance(color, list)
+    color = color[:len(data)]
+    for i, _color in enumerate(color):  
+        # 转换格式，如果是int的rgb值，转换为浮点数的格式
+        if isinstance(_color[0], int):
+            color[i] = (_color[0]/255, _color[1]/255, _color[2]/255)
+    kwargs.pop('color')
+
+    # parse marker
+    # https://matplotlib.org/stable/gallery/lines_bars_and_markers/marker_reference.html
+    marker = kwargs.get('marker', ['.', 'D', '^', 'o', 's', '*', 'v', 'p'])
+    assert isinstance(marker, list)
+    marker = marker[:len(data)]
+    kwargs.pop('marker')
+
+    # parse marker size
+    ms = kwargs.get('ms', 4)
+    if isinstance(ms, list):
+        assert len(ms) == len(data)
+    else:
+        ms = [ms] * len(data)
+    kwargs.pop('ms')
+
+    plot = data_parse_func(data, ax,
+                           curve_linewidth=curve_linewidth,
+                           color=color,
+                           marker=marker,
+                           ms=ms,
+                           **kwargs)
 
     ax[0].xaxis.grid(linestyle=':', zorder=-1,
                      color=(151 / 255, 151 / 255, 151 / 255))
@@ -149,39 +193,11 @@ def draw_step_multi_y(data, **kwargs):
     def data_parse_callback(data, ax, **kwargs):
         plot = []
         where = kwargs.get('where', 'pre')
-
-        # parse linewidth
-        linewidth = kwargs.get('curve_linewidth', 1.0)
-        if isinstance(linewidth, list):
-            assert len(linewidth) == len(data)
-        else:
-            linewidth = [linewidth] * len(data)
-
-        # parse color
-        color = kwargs.get('color', [measure.purple, measure.green_chrome,
-                                     measure.blue_chrome, measure.orange,
-                                     measure.yellow, measure.red_chrome,
-                                     measure.yellow_chrome, measure.grey_heavy])
-        assert isinstance(color, list)
-        color = color[:len(data)]
-        for i, _color in enumerate(color):  
-            # 转换格式，如果是int的rgb值，转换为浮点数的格式
-            if isinstance(_color[0], int):
-                color[i] = (_color[0]/255, _color[1]/255, _color[2]/255)
-
-        # parse marker
-        # https://matplotlib.org/stable/gallery/lines_bars_and_markers/marker_reference.html
-        marker = kwargs.get('marker', ['.', 'D', '^', 'o', 's', '*', 'v', 'p'])
-        assert isinstance(marker, list)
-        marker = marker[:len(data)]
-
-        # parse marker size
-        ms = kwargs.get('ms', 4)
-        if isinstance(ms, list):
-            assert len(ms) == len(data)
-        else:
-            ms = [ms] * len(data)
-
+        linewidth = kwargs['curve_linewidth']
+        marker = kwargs['marker']
+        color = kwargs['color']
+        ms = kwargs['ms']
+        
         for item, _linewidth, _marker, _color, _ms in zip(data, linewidth, marker, color, ms):
             x = item[0]
             y = item[1]
@@ -205,10 +221,16 @@ def draw_plot_multi_y(data, **kwargs):
     """
     def data_parse_callback(data, ax, **kwargs):
         plot = []
-        for item in data:
+        linewidth = kwargs['curve_linewidth']
+        marker = kwargs['marker']
+        color = kwargs['color']
+        ms = kwargs['ms']
+        
+        for item, _linewidth, _marker, _color, _ms in zip(data, linewidth, marker, color, ms):
             x = item[0]
             y = item[1]
-            _p, = ax[0].plot(x, y, mfc='none', ms=4, linewidth=1.0)
+            _p, = ax[0].plot(x, y, ms=_ms, linewidth=_linewidth,
+                             marker=_marker, color=_color)
             plot.append(_p)
         return plot
     return __style_a(data, data_parse_callback, **kwargs)

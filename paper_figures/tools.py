@@ -570,8 +570,8 @@ def draw_legend(ax, **kwargs):
             'family': font_family,
             'size': font_size
         },
-        framealpha=0
-    ).get_frame().set_linewidth(0)
+        framealpha=1
+    ).get_frame().set_linewidth(0.1)
 
 
 def generate_ticks(num, bound, log=False):

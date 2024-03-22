@@ -40,7 +40,7 @@ def __style_a(data, data_parse_func, **kwargs):
         assert len(curve_linewidth) == len(data)
     else:
         curve_linewidth = [curve_linewidth] * len(data)
-    kwargs.pop('curve_linewidth')
+    kwargs['curve_linewidth'] = curve_linewidth
 
     # parse color
     color = kwargs.get('color', [measure.purple, measure.green_chrome,
@@ -53,14 +53,14 @@ def __style_a(data, data_parse_func, **kwargs):
         # 转换格式，如果是int的rgb值，转换为浮点数的格式
         if isinstance(_color[0], int):
             color[i] = (_color[0]/255, _color[1]/255, _color[2]/255)
-    kwargs.pop('color')
+    kwargs['color'] = color
 
     # parse marker
     # https://matplotlib.org/stable/gallery/lines_bars_and_markers/marker_reference.html
     marker = kwargs.get('marker', ['.', 'D', '^', 'o', 's', '*', 'v', 'p'])
     assert isinstance(marker, list)
     marker = marker[:len(data)]
-    kwargs.pop('marker')
+    kwargs['marker'] = marker
 
     # parse marker size
     ms = kwargs.get('ms', 4)
@@ -68,14 +68,9 @@ def __style_a(data, data_parse_func, **kwargs):
         assert len(ms) == len(data)
     else:
         ms = [ms] * len(data)
-    kwargs.pop('ms')
+    kwargs['ms'] = ms
 
-    plot = data_parse_func(data, ax,
-                           curve_linewidth=curve_linewidth,
-                           color=color,
-                           marker=marker,
-                           ms=ms,
-                           **kwargs)
+    plot = data_parse_func(data, ax, **kwargs)
 
     ax[0].xaxis.grid(linestyle=':', zorder=-1,
                      color=(151 / 255, 151 / 255, 151 / 255))
@@ -97,6 +92,8 @@ def __style_a(data, data_parse_func, **kwargs):
         ax[0].set_yticks(kwargs['yticks'])
     if 'ylim' in kwargs:
         ax[0].set_ylim(kwargs['ylim'])
+    if 'title' in kwargs:
+        ax[0].set_title(kwargs['title'])
 
     if 'xlabel' in kwargs:
         ax[0].set_xlabel(kwargs['xlabel'],
@@ -114,6 +111,9 @@ def __style_a(data, data_parse_func, **kwargs):
         have_legend = False
     else:
         legend_labels = kwargs['legend_labels']
+        
+    legend_ncol = kwargs.get('legend_ncol', 1)
+    legend_location = kwargs.get('legend_location', 0)
 
     if have_legend:
         print(legend_labels)
@@ -121,8 +121,8 @@ def __style_a(data, data_parse_func, **kwargs):
             ax[0],
             plots=plot,
             labels=legend_labels,
-            location=0,
-            ncol=1,
+            location=legend_location,
+            ncol=legend_ncol,
             font_size=font_size * 0.75,
             font_family=font_family
         )

@@ -46,6 +46,14 @@ w_pad_normal = 1
 h_pad_single = 0.01
 w_pad_single = 0.01
 
+
+bar_width = 1.25 + 0.25
+bar_interval = 0.5
+
+group_left_margin = 2
+group_right_margin = 2
+group_margin = 2 + 0.25
+
 # colors
 red = 'r'
 blue = 'blue'
@@ -74,6 +82,9 @@ orange = (
 purple = (
     128 / 255, 0 / 255, 128 / 255
 )
+
+def gray_color(degree: int):
+    return (degree / 255, degree / 255, degree / 255)
 
 # unit
 K = 1024

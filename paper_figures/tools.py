@@ -353,7 +353,7 @@ def get_axis(**kwargs):
     matplotlib.rcParams['figure.dpi'] = 1800
     matplotlib.rcParams['savefig.dpi'] = 1800
     matplotlib.rcParams['hatch.linewidth'] = line_width
-    matplotlib.rcParams['lines.linewidth'] = line_width
+    matplotlib.rcParams['lines.linewidth'] = line_width 
 
     fig = matplotlib.pyplot.figure(figsize=(figure_width, figure_height))
 
@@ -400,7 +400,12 @@ def get_axis(**kwargs):
             tick.label2.set_family(font_family)
         for tick in _ax.xaxis.get_major_ticks():
             tick.label2.set_family(font_family)
-
+    
+    for _ax in ax:
+        _ax.spines['top'].set_linewidth(1)    # 设置上边框的粗细
+        _ax.spines['bottom'].set_linewidth(1) # 设置下边框的粗细
+        _ax.spines['left'].set_linewidth(1)   # 设置左边框的粗细
+        _ax.spines['right'].set_linewidth(1)  # 设置右边框的粗细
     return ax
 
 
@@ -441,7 +446,7 @@ def save_fig(**kwargs):
     print(output_file)
 
     matplotlib.pyplot.savefig(
-        output_file, transparent=True, bbox_inches='tight', pad_inches=0, dpi=1800)
+        output_file, transparent=True, bbox_inches='tight', pad_inches=0.01, dpi=1800)
     # if is_open_dir:
     #     open_dir(output_dir)
     if is_open_file:

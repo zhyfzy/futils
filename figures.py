@@ -28,6 +28,8 @@ def __style_a(data, data_parse_func, **kwargs):
     【绘图的回调函数(仅限bar)】
     group_name: 在横坐标展示的group的名称
     bar_yerr: error bar的数据
+    facecolors: bar的填充颜色
+    framecolors: bar的边框颜色
 
     【后处理】
     xticks: x坐标轴有哪些刻度
@@ -42,7 +44,7 @@ def __style_a(data, data_parse_func, **kwargs):
     legend_location: 图例的位置
     output_name: 图片保存到哪里
     """
-    frame_linewidth = kwargs.get('frame_linewidth', measure.line_width_normal)
+    frame_linewidth = kwargs.get('frame_linewidth', measure.line_width_light)
     kwargs['frame_linewidth'] = frame_linewidth
     font_size = kwargs.get('font_size', 11)
     kwargs['font_size'] = 11
@@ -51,7 +53,7 @@ def __style_a(data, data_parse_func, **kwargs):
     if font_family == 'sans-serif':
         matplotlib.rcParams['font.sans-serif'] = ['SimSun']
 
-    figure_width = kwargs.get('figure_width', 4.2)
+    figure_width = kwargs.get('figure_width', 3.2)
     figure_height = kwargs.get('figure_height', 2.6)
 
     xtick_pad = kwargs.get('xtick_pad', measure.xtick_pad_normal)
@@ -342,11 +344,13 @@ def draw_bar(data, **kwargs):
 
         # 设置bar样式
         g75 = measure.gray_color(75)
-        colors = [g75, g75, g75, g75, g75, g75]  # bar的边框颜色
+        colors = kwargs.get('framecolors', [g75, g75, g75, g75, g75, g75]) # bar的边框颜色
         # 填充物 [None, 'xxxx', '\\\\\\\\', None, '////', 'xxxx']
-        hatchs = [None, None, None, None, None, None]
-        facecolors = [measure.red_chrome, measure.orange, measure.yellow,
-                      measure.yellow_chrome, measure.green_chrome, measure.blue_chrome]  # 填充颜色
+        hatchs = kwargs.get('hatchs', [None, None, None, None, None, None])
+        facecolors = kwargs.get('facecolors', [measure.blue_chrome, 
+                      measure.orange, measure.green_chrome, measure.yellow,
+                      measure.yellow_chrome, 
+                      measure.red])  # 填充颜色
         while len(colors) < bar_count_in_group:
             colors.extend(colors)
             hatchs.extend(hatchs)

@@ -3,6 +3,24 @@ import zipfile
 import requests
 
 
+class PrintFileByLine:
+    """同时向文件和STD中输出内容"""
+
+    def __init__(self, file_path, *args):
+        with open(file_path, "w") as _f:
+            pass
+        if len(args) > 0:
+            self.__call__(*args)
+        self.file_path = file_path
+
+    def __call__(self, *args):
+        """直接使用instance_name()的方式调用"""
+        parsed_args = " ".join([str(arg) for arg in args])
+        with open(self.file_path, "a") as _f:
+            print(*args)
+            _f.write(parsed_args + "\n")
+
+
 def read_data(data_path: str, seperator: str = '\t', dtype=str):
     """从文件中读取多行数据，每个数据之间以seperator分隔"""
     _data = []

@@ -12,6 +12,9 @@ def unix_time_to_str(st, _format="%Y-%m-%d %H:%M:%S", utc=False):
         return dt.strftime(_format)
     return time.strftime(_format, time.localtime(st))
 
+def get_timestamp(_format="%Y-%m-%d %H:%M:%S", utc=False):
+    st = time.time()
+    return unix_time_to_str(st, _format, utc)
 
 def unix_time_to_str_date(st, _format="%Y-%m-%d", utc=False):
     """将unix时间（单位：秒），转换为字符串

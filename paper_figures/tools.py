@@ -565,6 +565,8 @@ def draw_legend(ax, **kwargs):
     ncol = kwargs['ncol']
     font_size = kwargs['font_size']
     font_family = kwargs['font_family']
+    handletextpad = kwargs['handletextpad']
+    columnspacing = kwargs['columnspacing']
     ax.legend(
         plots,
         labels,
@@ -575,7 +577,9 @@ def draw_legend(ax, **kwargs):
             'family': font_family,
             'size': font_size
         },
-        framealpha=1
+        framealpha=1,
+        handletextpad=handletextpad,
+        columnspacing=columnspacing,
     ).get_frame().set_linewidth(0.1)
 
 

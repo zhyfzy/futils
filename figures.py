@@ -1,18 +1,17 @@
 """一些简单的绘图函数，调用即绘图"""
 import matplotlib
 import matplotlib.pyplot as plt
-import matplotlib.font_manager as font_manager
+from matplotlib.ticker import FuncFormatter
 import numpy as np
 import statsmodels.api as sm
 import futils.paper_figures.measure as measure
 import futils.paper_figures.tools as tools
 
-
 def __style_a(data, data_parse_func, **kwargs):
     """参数：
     【预处理阶段】
     frame_linewidth: 边框的宽度，默认measure.line_width_normal=0.2
-    font_family: 默认宋体
+    font_family: 默认宋体，英文常用Arial
     font_size: 默认11号字体
     figure_width: 图片的宽度
     figure_height: 图片的高度
@@ -39,10 +38,16 @@ def __style_a(data, data_parse_func, **kwargs):
     title: 图表标题
     xlabel: x坐标轴
     ylabel: y坐标轴
+    xscale_symlog: 将x坐标设置为对称log缩放
+    yscale_symlog: 将y坐标设置为对称log缩放，举例：yscale_symlog = {'base':2, 'linthresh': 2}
     legend_labels: 图例中的文字，是个list
     legend_ncol: 图例的列数
     legend_location: 图例的位置
+    legend_handletextpad: 图例中符号和文字之间的间距
+    legend_columnspacing: 图例中两列的间距
+    legend_shuffle: 对图例中的符号顺序进行调整（不会更改文字的顺序）
     output_name: 图片保存到哪里
+    y_percent: True or False, 默认False，将y轴坐标设置为百分比，y值需要介于0~1之间
     """
     frame_linewidth = kwargs.get('frame_linewidth', measure.line_width_light)
     kwargs['frame_linewidth'] = frame_linewidth
@@ -84,8 +89,9 @@ def __style_a(data, data_parse_func, **kwargs):
     color = kwargs.get('color', [measure.purple, measure.green_chrome,
                                  measure.blue_chrome, measure.orange,
                                  measure.yellow, measure.red_chrome,
-                                 measure.yellow_chrome, measure.grey_heavy])
+                                 measure.yellow_chrome, measure.grey_heavy] * 100)
     assert isinstance(color, list)
+
     color = color[:len(data)]
     for i, _color in enumerate(color):
         # 转换格式，如果是int的rgb值，转换为浮点数的格式
@@ -95,7 +101,8 @@ def __style_a(data, data_parse_func, **kwargs):
 
     # parse marker
     # https://matplotlib.org/stable/gallery/lines_bars_and_markers/marker_reference.html
-    marker = kwargs.get('marker', ['.', 'D', '^', 'o', 's', '*', 'v', 'p'])
+    marker = kwargs.get(
+        'marker', ['.', 'D', '^', 'o', 's', '*', 'v', 'p'] * 100)
     assert isinstance(marker, list)
     marker = marker[:len(data)]
     kwargs['marker'] = marker
@@ -122,14 +129,30 @@ def __style_a(data, data_parse_func, **kwargs):
         tick.label1.set_fontsize(font_size)
         tick.label1.set_family(font_family)
 
+    if 'yscale_symlog' in kwargs:
+        # 一般伴随着设置yticks，否则y坐标默认都是 2^n 的形式
+        ax[0].set_yscale('symlog', base=kwargs['yscale_symlog']['base'],
+                         linthresh=kwargs['yscale_symlog']['linthresh'])
+
+    if 'xscale_symlog' in kwargs:
+        ax[0].set_xscale('symlog', base=kwargs['xscale_symlog']['base'],
+                         linthresh=kwargs['xscale_symlog']['linthresh'])
+
     if 'xticks' in kwargs:
         ax[0].set_xticks(kwargs['xticks'])
-    if 'xlim' in kwargs:
-        ax[0].set_xlim(kwargs['xlim'])
     if 'yticks' in kwargs:
         ax[0].set_yticks(kwargs['yticks'])
+
+    if 'xticklabels' in kwargs:
+        ax[0].set_xticklabels(kwargs['xticklabels'])
+    if 'yticklabels' in kwargs:
+        ax[0].set_yticklabels(kwargs['yticklabels'])
+
+    if 'xlim' in kwargs:
+        ax[0].set_xlim(kwargs['xlim'])
     if 'ylim' in kwargs:
         ax[0].set_ylim(kwargs['ylim'])
+
     if 'title' in kwargs:
         ax[0].set_title(kwargs['title'])
 
@@ -139,6 +162,13 @@ def __style_a(data, data_parse_func, **kwargs):
     if 'ylabel' in kwargs:
         ax[0].set_ylabel(kwargs['ylabel'],
                          fontfamily=font_family, fontsize=font_size)
+        
+    y_percent = kwargs.get('y_percent', False)
+    if y_percent:
+        y_percent = kwargs.get('y_percent', False)
+        def percent_formatter(x, pos):
+            return f'{x * 100:.0f}%'
+        ax[0].yaxis.set_major_formatter(FuncFormatter(percent_formatter))
 
     if 'figure_type' in kwargs and kwargs['figure_type'] == 'bar':
         # 设置legend_labels:
@@ -159,8 +189,19 @@ def __style_a(data, data_parse_func, **kwargs):
         else:
             legend_labels = kwargs['legend_labels']
 
+    have_legend = kwargs.get("show_legend", have_legend)
+
     legend_ncol = kwargs.get('legend_ncol', 1)
     legend_location = kwargs.get('legend_location', 0)
+    legend_handletextpad = kwargs.get('legend_handletextpad', 1.0)
+    legend_columnspacing = kwargs.get('legend_columnspacing', 1.0)
+    legend_shuffle = kwargs.get('legend_shuffle', None)
+    if legend_shuffle is not None:
+        assert len(plot) == len(legend_shuffle)
+        shuffled_plot = [None] * len(plot)
+        for i, new_pos in enumerate(legend_shuffle):
+            shuffled_plot[new_pos] = plot[i]
+        plot = shuffled_plot
 
     if have_legend:
         tools.draw_legend(
@@ -170,7 +211,9 @@ def __style_a(data, data_parse_func, **kwargs):
             location=legend_location,
             ncol=legend_ncol,
             font_size=font_size * 0.75,
-            font_family=font_family
+            font_family=font_family,
+            handletextpad=legend_handletextpad,
+            columnspacing=legend_columnspacing,
         )
 
     output_name = kwargs.get('output_name', 'matplotlib.pdf')
@@ -183,23 +226,24 @@ def __style_a(data, data_parse_func, **kwargs):
     )
 
 
-def draw_scatter_multi_y(data, output_name='matplotlib.pdf',
-                         legend_label=None):
+def draw_scatter_multi_y(data, **kwargs):
     """绘制带有多组数据的散点图，并配有图例"""
-    plt.figure()
-    rts = []  # return values
-    for item in data:
-        x = plt.scatter(item[0], item[1], s=0.1)
-        rts.append(x)
-    # draw legend
-    if legend_label is None:
-        legend_label = []
-        for i in range(len(data)):
-            legend_label.append('Line'+str(i+1))
-    plt.legend(rts, legend_label, loc=0)
-    # save pic
-    plt.savefig(output_name)
-    plt.show()
+
+    def data_parse_callback(data, ax, **kwargs):
+        plot = []
+        linewidth = kwargs['curve_linewidth']
+        marker = kwargs['marker']
+        color = kwargs['color']
+        ms = kwargs['ms']
+        
+        for item, _linewidth, _marker, _color, _ms in zip(data, linewidth, marker, color, ms):
+            x = item[0]
+            y = item[1]
+            print(len(x), len(y))
+            _p = ax[0].scatter(x, y, s=_ms, c=_color)
+            plot.append(_p)
+        return plot
+    return __style_a(data, data_parse_callback, **kwargs)
 
 
 def draw_cdf_multi_y(data, **kwargs):
@@ -344,13 +388,14 @@ def draw_bar(data, **kwargs):
 
         # 设置bar样式
         g75 = measure.gray_color(75)
-        colors = kwargs.get('framecolors', [g75, g75, g75, g75, g75, g75]) # bar的边框颜色
+        colors = kwargs.get(
+            'framecolors', [g75, g75, g75, g75, g75, g75])  # bar的边框颜色
         # 填充物 [None, 'xxxx', '\\\\\\\\', None, '////', 'xxxx']
         hatchs = kwargs.get('hatchs', [None, None, None, None, None, None])
-        facecolors = kwargs.get('facecolors', [measure.blue_chrome, 
-                      measure.orange, measure.green_chrome, measure.yellow,
-                      measure.yellow_chrome, 
-                      measure.red])  # 填充颜色
+        facecolors = kwargs.get('facecolors', [measure.blue_chrome,
+                                               measure.orange, measure.green_chrome, measure.yellow,
+                                               measure.yellow_chrome,
+                                               measure.red])  # 填充颜色
         while len(colors) < bar_count_in_group:
             colors.extend(colors)
             hatchs.extend(hatchs)

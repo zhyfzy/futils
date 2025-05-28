@@ -8,7 +8,7 @@ def unix_time_to_str(st, _format="%Y-%m-%d %H:%M:%S", utc=False):
     使用范例：print(unix_time_to_str(time.time()))
     """
     if utc:
-        dt = datetime.datetime.utcfromtimestamp(st)
+        dt = datetime.datetime.fromtimestamp(st, datetime.timezone.utc)
         return dt.strftime(_format)
     return time.strftime(_format, time.localtime(st))
 

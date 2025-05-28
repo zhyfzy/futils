@@ -67,6 +67,8 @@ def read_dict_data(data_path: str, item_seperator: str = ",",
             _data.append(_line_dict)
     return _data
 
+        
+
 
 class LazyReader:
     """不会一次性全部读取整个文件，调用readline才会读入一行"""
@@ -90,7 +92,7 @@ class LazyReader:
         _item_list = str(_item).strip().split(self.seperator)
         _item_list = list(map(self.dtype, _item_list))
         return _item_list
-
+        
 
 class LazyReaders:
     """给一个文件path列表，读入多个文件，只有调用readline才读入一行"""
@@ -122,6 +124,61 @@ class LazyReaders:
             _item = self.reader.readline()
         return _item
 
+
+class Reader:
+    """不会一次性全部读取整个文件，调用readline才会读入一行"""
+
+    def __init__(self, data_path: str, seperator: str = '\t', dtype=str) -> None:
+        self._data_file = open(data_path, "r", encoding='utf-8')
+        self.seperator = seperator
+        self.dtype = dtype
+
+    def reset(self):
+        """从头开始读取"""
+        self._data_file.seek(0)
+
+    def readline(self):
+        """读取一行数据，如果是空，则表示读到末尾"""
+        _item = self._data_file.readline()
+        while _item.startswith("#"):
+            _item = self._data_file.readline()
+        if _item == "":
+            return None
+        _item_list = str(_item).strip().split(self.seperator)
+        _item_list = list(map(self.dtype, _item_list))
+        return _item_list
+        
+
+class Readers:
+    """给一个文件path列表，读入多个文件，只有调用readline才读入一行"""
+
+    def __init__(self, path_list, seperator: str = '\t', dtype=str) -> None:
+        self._cur_file_index = 0
+        self._path_list = path_list
+        self.seperator = seperator
+        self.dtype = dtype
+        self.reader = LazyReader(
+            self._path_list[0], self.seperator, self.dtype)
+
+    def reset(self):
+        """从头开始读取"""
+        self._cur_file_index = 0
+        self.reader = LazyReader(
+            self._path_list[0], self.seperator, self.dtype)
+
+    def readline(self):
+        if self._cur_file_index >= len(self._path_list):
+            return None
+        _item = self.reader.readline()
+        while _item is None:
+            self._cur_file_index += 1
+            if self._cur_file_index >= len(self._path_list):
+                return None
+            self.reader = LazyReader(self._path_list[self._cur_file_index],
+                                     self.seperator, self.dtype)
+            _item = self.reader.readline()
+        return _item
+    
 
 def download_file_from_proxy(url, proxy, destination_path):
     """
